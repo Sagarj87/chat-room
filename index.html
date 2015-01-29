@@ -45,7 +45,7 @@
 			async : false,
 			type : 'POST'
 		}).done(function(response){
-			socket = io.connect('http://10.204.225.199:3000/'+roomName);
+			socket = io.connect('http://localhost:3000/'+roomName);
 
 			socket.on('connect', function(){
 					// call the server-side function 'addUser' and send one parameter (value of prompt)
@@ -74,17 +74,29 @@
 
 
 			socket.on('resumeChat', function(_userName,conversationHistory) {
-				debugger
 				if(_userName === userName)
 					$.each(conversationHistory, function(index,data) {
 						$('#conversation').append('<b>'+ data.userName + ':</b> ' + data.message + '<br>');
 					});
         	});
 
+        	socket.on('typing', function(_userName){
+        		if(_userName !== userName){
+        			$('#conversation span#'+_userName).remove();
+        			$('#conversation').append('<span id="'+ _userName +'" class="typing"><b>'+ _userName + ':</b> typing ... <br></span>');
+        		}
+        	});
+
+        	setInterval(function(){
+        		$('#conversation span.typing').hide();
+        	},5000)
+
 
 			socket.on('disconnected', function() {
 				console.log('disconnect');
         	});
+
+        	$('#conversation').append('<span class="typing"></span>');
 
 		}).fail(function(){
 
@@ -103,6 +115,8 @@
 			if(e.which == 13) {
 				$(this).blur();
 				$('#datasend').focus().click();
+			}else{
+				socket.emit('typing',userName);
 			}
 		});
 

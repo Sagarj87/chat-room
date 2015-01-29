@@ -95,6 +95,10 @@ var connectionHandler = function(socket) {
 
     socket.on('leave', leaveHandler);
 
+    socket.on('typing',function(userName){
+        socket.broadcast.emit('typing',userName);
+    });
+
     // when the user disconnects.. perform this
     socket.on('disconnect', function(){
     	 console.log('someone disconnected from room', socket.nsp.name);
