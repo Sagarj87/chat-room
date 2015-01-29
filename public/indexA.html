@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html ng-app="myModule">
+<head>
+    <meta charset="utf-8" />
+    <title>AngularJS Chat Application</title>
+
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css"/>
+    <script>document.write('<base href="' + document.location + '" />');</script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+
+
+
+    <script src="/static/groupChatCtrl.js"></script>
+
+</head>
+<body ng-controller="groupChatController">
+
+<div>
+<h3>Chat Room name -{{groupName}} </h3>
+<h3>You joined as - {{userName}}</b></h3>
+</div>
+
+<div class="container">
+    <modal1 title="Login form" visible="showModal1" >
+
+            <div class="form-group">
+                <label for="email">Email address</label>
+                <input type="email" class="form-control" id="email" placeholder="Enter email" />
+            </div>
+            <input type="button" value="Submit" class="btn btn-default" ></button>
+
+    </modal1>
+</div>
+
+<div class="container">
+    <modal title="Login form" visible="showModal" >
+
+        <div class="form-group">
+            <label for="email">Email address</label>
+            <input type="email" class="form-control" id="email" placeholder="Enter email" />
+        </div>
+        <input type="button" value="Submit" class="btn btn-default" ></button>
+
+    </modal>
+</div>
+
+<div>
+    <table>
+        <tr>
+            <td>
+                 <h3>USERS</h3>
+                <div ng-repeat="userName in UserGroup">
+                    <lable>{{userName.Name}}</lable>
+                </div>
+            </td>
+            <td>
+                    <input type="text" ng-model="message"/><input type="button" value="Send" ng-click="sendMessage()"/>
+            </td>
+        </tr>
+    </table>
+
+</div>
+
+</body>
+</html>
+

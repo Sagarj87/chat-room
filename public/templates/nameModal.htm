@@ -1,0 +1,21 @@
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Like to join a Group Chat</h4>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="user-name" class="control-label">Group name:</label>
+                        <input type="text" ng-model="groupName" class="form-control" id="user-name"/>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" ng-click="getName(groupName)">Send</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
