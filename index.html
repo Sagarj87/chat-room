@@ -1,0 +1,145 @@
+<script src="/socket.io/socket.io.js"></script>
+<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+<script>
+	var userName,roomName,socket;
+
+	// on load of page
+	$(function(){
+
+		 userName = prompt("What's your name?");
+		 while(true) {
+			 if(!userName){
+			 	alert("Please enter valid name");
+			 	userName = prompt("What's your name?");
+			 } else{
+			 	break;
+			 }
+		 };
+
+		 var urlParts = window.location.href.split('/');
+		 roomName = urlParts[urlParts.length-1];
+		 if(!roomName) {
+		 	roomName = prompt("Create/Join a chat room");
+
+			 while(true) {
+				 if(!roomName){
+				 	alert("Please enter valid room name");
+				 	roomName = prompt("Create/Join a chat room");
+				 } else{
+				 	break;
+				 }
+			 };
+		}
+		console.log('dsada');
+		
+		$('#roomName').text(roomName);
+		$('#userName').text(userName);
+
+		//var userName = 'Sagar' , roomName = 'G1';
+		//userName = 'Ram' , roomName = 'G1';
+		
+		var url =   roomName + '/joinRoom/' + userName;
+		$.ajax({ 
+			url : url ,
+			dataType : 'json',
+			async : false,
+			type : 'POST'
+		}).done(function(response){
+			socket = io.connect('http://localhost:3000/'+roomName);
+
+			socket.on('connect', function(){
+					// call the server-side function 'addUser' and send one parameter (value of prompt)
+					socket.emit('addUser', { userName : userName, roomName : roomName });
+					console.log('Connected to room',roomName);
+			});
+
+			// listener, whenever the server emits 'updatechat', this updates the chat body
+			socket.on('message', function (username, data) {
+				$('#conversation').append('<b>'+username + ':</b> ' + data + '<br>');
+			});
+			
+			// listener, whenever the server emits 'updatechat', this updates the chat body
+			socket.on('flood', function (username, data) {
+				$('#conversation').append('<b>'+username + ':</b> ' + data + '<br>');
+			});
+
+			// listener, whenever the server emits 'updateUsers', this updates the username list
+			socket.on('updateUsers', function(data) {
+				console.log(data);
+				$('#users').empty();
+				$.each(data, function(index,value) {
+					$('#users').append('<div>' + value + '</div>');
+				});
+			});
+
+
+			socket.on('resumeChat', function(_userName,conversationHistory) {
+				if(_userName === userName)
+					$.each(conversationHistory, function(index,data) {
+						$('#conversation').append('<b>'+ data.userName + ':</b> ' + data.message + '<br>');
+					});
+        	});
+
+        	socket.on('typing', function(_userName){
+        		if(_userName !== userName){
+        			$('#conversation span#'+_userName).remove();
+        			$('#conversation').append('<span id="'+ _userName +'" class="typing"><b>'+ _userName + ':</b> typing ... <br></span>');
+        		}
+        	});
+
+        	setInterval(function(){
+        		$('#conversation span.typing').hide();
+        	},5000)
+
+
+			socket.on('disconnected', function() {
+				console.log('disconnect');
+        	});
+
+        	$('#conversation').append('<span class="typing"></span>');
+
+		}).fail(function(){
+
+		});
+
+		// when the client clicks SEND
+		$('#datasend').click( function() {
+			var message = $('#data').val();
+			$('#data').val('');
+			// tell server to execute 'message' and send along one parameter
+			socket.emit('message', { roomName : roomName, userName : userName , message : message});
+		});
+
+		// when the client hits ENTER on their keyboard
+		$('#data').keypress(function(e) {
+			if(e.which == 13) {
+				$(this).blur();
+				$('#datasend').focus().click();
+			}else{
+				socket.emit('typing',userName);
+			}
+		});
+
+	});
+	$(window).on('beforeunload', function(){
+     	 	return 'Are you sure you want to leave the room ?';
+	});
+
+	$(window).on('unload', function(){
+		  socket.emit('leave', { roomName : roomName, userName : userName });
+          alert( "Handler for .unload() called." );
+	});
+
+</script>
+<h3>Chat Room name - <b id="roomName"></b></h3> 
+<h3>You joined as - <b id="userName"></b></h3> 
+
+<div style="float:left;width:100px;border-right:1px solid black;height:300px;padding:10px;overflow:scroll-y;">
+	<b>USERS</b>
+	<div id="users"></div>
+</div>
+<div style="float:left;width:300px;height:250px;overflow:scroll-y;padding:10px;">
+	<div id="conversation"></div>
+	<input id="data" style="width:200px;" />
+	<input type="button" id="datasend" value="send" />
+</div>
