@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html ng-app="myModule">
+<head>
+    <meta charset="utf-8" />
+    <title>AngularJS Chat Application</title>
+
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css"/>
+    <script>document.write('<base href="' + document.location + '" />');</script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+
+
+
+    <script src="/static/controllers/chatRoomCtrl.js"></script>
+
+</head>
+<body ng-controller="chatRoomController">
+
+<div>
+    <h3>Join available chat rooms</h3>
+    <b><label ng-show="isEmpty">{{notify}}</label></b>
+    <div ng-repeat="room in rooms" ng-show="!isEmpty">
+        <a href="/join/{{room.roomName}}" class="btn btn-primary">{{room.roomName}}</a>
+    </div>
+
+    <h3>OR</h3>
+    <a href="/" class="btn btn-primary btn-lg">Create chat room</a>
+</div>
+
+</body>
+</html>

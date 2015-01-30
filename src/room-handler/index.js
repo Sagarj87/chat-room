@@ -21,11 +21,24 @@ module.exports.joinRoom = function(roomName, createdBy) {
         var room = {
             roomName: roomName,
             createdBy: createdBy,
-            createDate: Date.now(),
+            createDate: Date.now()
         };
 
         activeRooms.push(room);
     }
+    io.of("/chatroom").emit('newRoom',activeRooms);
+};
+
+
+
+module.exports.getActiveUsers = function(roomName) {
+    var roomInfo = lookUpRooms(roomName);
+    return (roomInfo) ? roomInfo.userNames : [];
+};
+
+
+module.exports.getActiveRooms = function() {
+    return activeRooms;
 };
 
 var connectionHandler = function(socket) {
@@ -38,20 +51,20 @@ var connectionHandler = function(socket) {
     var addUserHandler = function(data) {
 
         var roomInfo = lookUpRooms(data.roomName);
-        if (!roomInfo.socket) {
-            roomInfo.socket = socket;
+        if (!roomInfo.status) {
+            roomInfo.status = 'connected';
             roomInfo.userNames = [];
             roomInfo.conversationHistory = [];
         }
 
 
         // echo to client they've connected
-        io.of(data.roomName).emit('message', 'SERVER', 'you have connected');
+        io.of(data.roomName).emit('welcome', data.userName, 'you have connected');
 
         io.of(data.roomName).emit('resumeChat', data.userName, roomInfo.conversationHistory);
 
         // echo globally (all clients) that a person has connected
-        roomInfo.socket.broadcast.emit('flood', 'SERVER', data.userName + ' has connected');
+        socket.broadcast.emit('flood', 'SERVER', data.userName + ' has connected');
         if (!_.includes(roomInfo.userNames, data.userName)) {
             // add the client's username to the global list
             roomInfo.userNames.push(data.userName);
@@ -63,12 +76,17 @@ var connectionHandler = function(socket) {
     };
 
     var leaveHandler = function(data) {
-        var roomInfo = lookUpRooms(socket.nsp.name.replace('/', ''));
-        
-        // remove the username from global usernames list
+        var roomInfo = lookUpRooms(data.roomName);
+        if(!roomInfo)  return;
+        // remove the username from usernames list
         _.remove(roomInfo.userNames, function(user){
-        	 return user === data.userName;
+            return user === data.userName;
         });
+
+        if(roomInfo.userNames.length === 0) {
+            // discard room if no active users
+            discardRoom(roomName);
+        }
 
         // update list of users in chat, client-side
         io.of(roomInfo.roomName).emit('updateUsers', roomInfo.userNames);
@@ -85,8 +103,9 @@ var connectionHandler = function(socket) {
     socket.on('message', function(data) {
         var roomInfo = lookUpRooms(data.roomName);
         roomInfo.conversationHistory.push({
-        	userName : data.userName,
-        	message : data.message
+            userName : data.userName,
+            message : data.message,
+            timeStamp : Date.now()
         });
 
         // we tell the client to execute 'flood' with 2 parameters
@@ -97,7 +116,35 @@ var connectionHandler = function(socket) {
 
     // when the user disconnects.. perform this
     socket.on('disconnect', function(){
-    	 console.log('someone disconnected from room', socket.nsp.name);
+        var roomName = socket.nsp.name.replace('/', '');
+        var roomInfo = lookUpRooms(roomName);
+
+        if(!roomInfo)  return;
+       
+        if(roomInfo.userNames.length < 2) {
+            // discard room if no active users
+            discardRoom(roomName);
+        }
+
+        // update list of users in chat, client-side
+        io.of(roomInfo.roomName).emit('updateUsers', roomInfo.userNames);
+     
+        console.log('someone disconnected from room', roomName);
     });
 
+
+    socket.on('typing', function(userName){
+        socket.broadcast.emit('typing', userName);
+    });
+
+};
+
+var discardRoom = function(roomName){
+    var beforeCount = activeRooms.length;
+    _.remove(activeRooms, function(room){
+        return room.roomName === roomName;
+    });
+    var flag = beforeCount > activeRooms.length || activeRooms.length === 0;
+    if(flag) io.of("/chatroom").emit('newRoom',activeRooms);
+    return flag;
 };

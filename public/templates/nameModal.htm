@@ -6,13 +6,15 @@
                 <h4 class="modal-title" id="myModalLabel">Like to join a Group Chat</h4>
             </div>
             <div class="modal-body">
-                <form>
+                <form name="roomForm">
                     <div class="form-group">
-                        <label for="user-name" class="control-label">Group name:</label>
-                        <input type="text" ng-model="groupName" class="form-control" id="user-name"/>
+                        <input type="text" name="roomName" required ng-model="groupName" class="form-control"  placeholder="Enter group name" id="roomName"/>
+                        <span style="color:red" ng-show="roomForm.roomName.$dirty && roomForm.roomName.$invalid">
+                             <span ng-show="roomForm.roomName.$error.required">Group name is required.</span>
+                         </span>
                     </div>
                     <div class="form-group">
-                        <button class="btn btn-primary" ng-click="getName(groupName)">Send</button>
+                        <input type="submit" value="Create" class="btn btn-primary" ng-disabled="roomForm.roomName.$dirty && roomForm.roomName.$invalid"  ng-click="getName(groupName)"/>
                     </div>
                 </form>
             </div>

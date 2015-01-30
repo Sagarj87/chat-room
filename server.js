@@ -12,7 +12,7 @@ app.get('/', function(req, res) {
     res.sendFile(__dirname + '/public/indexA.html');
 });
 
-app.get('/:roomName', function(req, res) {
+app.get('/join/:roomName', function(req, res) {
     res.sendFile(__dirname + '/public/indexA.html');
 })
 
@@ -20,6 +20,19 @@ app.post('/:roomName/joinRoom/:userName', function(req, res) {
     roomHandler.joinRoom(req.params.roomName,req.params.userName);
     res.send({ status : 'joined'});
 });
+
+app.get('/chatroom', function(req, res) {
+    res.sendFile(__dirname + '/public/chatRoom.html');
+});
+
+app.get('/:roomName/users', function(req, res) {
+    res.send(roomHandler.getActiveUsers(req.params.roomName));
+});
+
+app.get('/rooms/fetch', function(req, res) {
+    res.send(roomHandler.getActiveRooms());
+});
+
 
 // Showing stack errors
 app.set('showStackError', true);
